@@ -1,0 +1,135 @@
+# =========================
+# Build
+# =========================
+bin/
+obj/
+out/
+publish/
+
+# =========================
+# User-specific files
+# =========================
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================
+# Visual Studio
+# =========================
+.vs/
+
+# =========================
+# Rider / JetBrains
+# =========================
+.idea/
+*.sln.iml
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+*.tlog
+
+# =========================
+# ASP.NET / IIS
+# =========================
+wwwroot/
+iisexpress/
+*.dbmdl
+
+# =========================
+# Entity Framework
+# =========================
+*.mdf
+*.ldf
+
+# =========================
+# NuGet
+# =========================
+*.nupkg
+.nuget/
+packages/
+
+# except build/
+!**/build/
+
+# =========================
+# Secrets / Environment
+# =========================
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+.env
+.env.*
+secrets.json
+
+# =========================
+# Certificates / Keys
+# =========================
+*.pfx
+*.pem
+*.key
+*.crt
+*.cer
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Test Results
+# =========================
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# =========================
+# Temporary files
+# =========================
+tmp/
+temp/
+*.tmp
+
+# =========================
+# YARP Reverse Proxy Cache
+# =========================
+yarp-cache/
+
+# =========================
+# OpenTelemetry / Tracing
+# =========================
+traces/
+*.trace
+
+# =========================
+# Node (if frontend/admin added later)
+# =========================
+node_modules/
+
+# =========================
+# Terraform / Infra (optional)
+# =========================
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# =========================
+# Kubernetes secrets (optional)
+# =========================
+k8s/secrets/
