@@ -38,6 +38,7 @@ Enterprise API Gateway built with YARP and ASP.NET Core 10.
    ```
 
 ### Using .NET CLI
+Run from the project root directory (Environment variables are pre-configured in `launchSettings.json` for development):
 ```bash
 dotnet run --project src/SS.APIGateway
 ```
