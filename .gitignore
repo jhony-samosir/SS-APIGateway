@@ -65,6 +65,7 @@ packages/
 # Secrets / Environment
 # =========================
 appsettings.Development.json
+appsettings.Production.json
 appsettings.Local.json
 appsettings.*.local.json
 .env
