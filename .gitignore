@@ -85,6 +85,7 @@ secrets.json
 # Docker
 # =========================
 docker-compose.override.yml
+docker-compose.yml
 
 # =========================
 # OS Files
