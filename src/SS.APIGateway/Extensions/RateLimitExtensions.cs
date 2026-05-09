@@ -25,7 +25,7 @@ public static class RateLimitExtensions
                     QueueLimit = global.GetValue("QueueLimit", 50)
                 }));
 
-            // Brute-force protection for /api/auth/login
+            // Brute-force protection for /api/auth/login and /api/mfa/verify
             options.AddPolicy("brute-force", ctx => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: GetClientIp(ctx),
                 factory: _ => new FixedWindowRateLimiterOptions
@@ -34,6 +34,18 @@ public static class RateLimitExtensions
                     Window = bruteForce.GetValue("Window", TimeSpan.FromMinutes(1)),
                     QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                     QueueLimit = bruteForce.GetValue("QueueLimit", 0)
+                }));
+
+            // Anti-abuse protection for registration and forgot-password
+            var antiAbuse = config.GetSection("RateLimiting:AntiAbusePolicy");
+            options.AddPolicy("anti-abuse", ctx => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: GetClientIp(ctx),
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = antiAbuse.GetValue("PermitLimit", 10),
+                    Window = antiAbuse.GetValue("Window", TimeSpan.FromMinutes(1)),
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    QueueLimit = antiAbuse.GetValue("QueueLimit", 0)
                 }));
 
             options.RejectionStatusCode = 429;

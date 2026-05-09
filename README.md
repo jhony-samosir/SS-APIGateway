@@ -2,6 +2,8 @@
 
 Enterprise API Gateway built with YARP and ASP.NET Core 10.
 
+[**View API Endpoint Matrix & Documentation**](API_MATRIX.md)
+
 ## Features
 
 - **Zero Trust Security**:

@@ -12,8 +12,8 @@ public static class CorsSecurityExtensions
             options.AddPolicy("GatewayPolicy", builder =>
             {
                 builder.WithOrigins(allowedOrigins)
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
+                       .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                       .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With", "X-Correlation-Id")
                        .AllowCredentials();
             });
         });

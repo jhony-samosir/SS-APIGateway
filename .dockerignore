@@ -12,7 +12,6 @@ docker-compose*
 .dockerignore
 .gitignore
 README.md
-implementation_plan.md
-task.md
-code_review.md
-walkthrough.md
+*.md
+.env*
+secrets/

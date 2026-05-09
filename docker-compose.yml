@@ -8,10 +8,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - GATEWAY_HMAC_SECRET=${GATEWAY_HMAC_SECRET:-dev_secret_key_change_in_production}
+      - Jwt__PublicKeyPath=/app/secrets/jwt_public_key.pem
+      - ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address=http://auth-service:8080
     volumes:
-      - ./secrets/jwt_public_key.pem:/run/secrets/jwt_public_key.pem:ro
+      - ./secrets:/app/secrets:ro
     networks:
-      - smallmarket-net
+      - ss-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
@@ -19,19 +21,37 @@ services:
       retries: 3
       start_period: 10s
 
-  # Mock services for testing
   auth-service:
-    image: hashicorp/http-echo
-    command: -text='{"message":"Auth Service"}'
+    image: jhony-samosir/ss-authservice:latest
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=auth-db;Database=ss_auth;Username=postgres;Password=postgres
+      - Jwt__PrivateKeyPath=/app/secrets/jwt_private_key.pem
+      - Jwt__PublicKeyPath=/app/secrets/jwt_public_key.pem
+      - GATEWAY_HMAC_SECRET=${GATEWAY_HMAC_SECRET:-dev_secret_key_change_in_production}
+    volumes:
+      - ./secrets:/app/secrets:ro
     networks:
-      - smallmarket-net
+      - ss-network
+    depends_on:
+      - auth-db
 
-  product-service:
-    image: hashicorp/http-echo
-    command: -text='{"message":"Product Service"}'
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=ss_auth
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
     networks:
-      - smallmarket-net
+      - ss-network
 
 networks:
-  smallmarket-net:
+  ss-network:
     driver: bridge
+
+volumes:
+  auth-db-data:
