@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using SS.APIGateway.Configuration;
 using System.Security.Cryptography;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SS.APIGateway.Extensions;
 
@@ -16,6 +17,9 @@ public static class AuthenticationExtensions
     {
         var jwtOpts = config.GetSection("Jwt").Get<JwtOptions>() 
             ?? throw new InvalidOperationException("JWT configuration is missing.");
+        
+        // Disable default mapping to use raw claim names (sub, role, etc)
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         
         // Load RSA public key from PEM file (injected via K8s Secret)
         var rsaPublicKey = LoadRsaPublicKey(jwtOpts.PublicKeyPath);

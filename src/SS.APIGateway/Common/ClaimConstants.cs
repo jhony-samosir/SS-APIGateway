@@ -5,7 +5,8 @@ namespace SS.APIGateway.Common;
 /// </summary>
 public static class ClaimConstants
 {
-    public const string UserId = "user_id";
+    public const string UserId = "sub";
     public const string PublicId = "public_id";
+    public const string Role = "role";
     public const string Permissions = "permissions";
 }

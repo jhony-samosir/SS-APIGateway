@@ -16,7 +16,7 @@ public sealed class IdentityTransformProvider : ITransformProvider
     // Headers that clients must NEVER be allowed to spoof
     private static readonly string[] _spoofableHeaders = [
         "X-User-Id",
-        "X-User-Role",
+        "X-User-Roles",
         "X-User-Permissions",
         "X-User-PublicId",
         "X-Internal-Signature"
@@ -46,7 +46,7 @@ public sealed class IdentityTransformProvider : ITransformProvider
 
             InjectHeader(transformCtx, "X-User-Id", user.FindFirstValue(ClaimConstants.UserId));
             InjectHeader(transformCtx, "X-User-PublicId", user.FindFirstValue(ClaimConstants.PublicId));
-            InjectHeader(transformCtx, "X-User-Role", user.FindFirstValue(ClaimTypes.Role));
+            InjectHeader(transformCtx, "X-User-Roles", user.FindFirstValue(ClaimConstants.Role));
             InjectHeader(transformCtx, "X-User-Permissions", user.FindFirstValue(ClaimConstants.Permissions));
 
             return ValueTask.CompletedTask;
