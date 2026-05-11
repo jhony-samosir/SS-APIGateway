@@ -27,8 +27,7 @@ public sealed class IdentityTransformProvider : ITransformProvider
         "X-User-Roles",
         "X-User-Permissions",
         "X-User-PublicId",
-        "X-Internal-Signature",
-        "Authorization" // Strip client-supplied auth to ensure we only use validated cookie/token
+        "X-Internal-Signature"
     ];
 
     public void ValidateRoute(TransformRouteValidationContext context) { }
