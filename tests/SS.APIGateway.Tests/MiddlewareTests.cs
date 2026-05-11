@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
 using Moq;
 using SS.APIGateway.Middleware;
+using Yarp.ReverseProxy.Model;
+
 
 namespace SS.APIGateway.Tests;
 
@@ -48,7 +51,7 @@ public class CorrelationIdMiddlewareTests
 public class SecurityHeadersMiddlewareTests
 {
     [Fact]
-    public async Task InvokeAsync_AddsSecurityHeaders()
+    public async Task InvokeAsync_AddsSecurityHeaders_ToNonProxiedRequests()
     {
         // Arrange
         var nextMock = new Mock<RequestDelegate>();
@@ -56,10 +59,12 @@ public class SecurityHeadersMiddlewareTests
         
         var contextMock = new Mock<HttpContext>();
         var responseMock = new Mock<HttpResponse>();
-        var headerDictionary = new HeaderDictionary();
+        var headers = new HeaderDictionary();
+        var features = new FeatureCollection();
         
         contextMock.Setup(c => c.Response).Returns(responseMock.Object);
-        responseMock.Setup(r => r.Headers).Returns(headerDictionary);
+        contextMock.Setup(c => c.Features).Returns(features);
+        responseMock.Setup(r => r.Headers).Returns(headers);
         
         Func<Task> onStartingCallback = null;
         responseMock.Setup(r => r.OnStarting(It.IsAny<Func<Task>>()))
@@ -72,7 +77,44 @@ public class SecurityHeadersMiddlewareTests
         Assert.NotNull(onStartingCallback);
         await onStartingCallback();
         
-        Assert.Equal("nosniff", headerDictionary["X-Content-Type-Options"]);
-        Assert.Equal("DENY", headerDictionary["X-Frame-Options"]);
+        Assert.Equal("nosniff", headers["X-Content-Type-Options"]);
+        Assert.Equal("DENY", headers["X-Frame-Options"]);
+        Assert.False(headers.ContainsKey("X-XSS-Protection"));
+        Assert.Equal("default-src 'none'; frame-ancestors 'none'", headers["Content-Security-Policy"]);
     }
+
+    [Fact]
+    public async Task InvokeAsync_DoesNotAddCsp_ToProxiedRequests()
+    {
+        // Arrange
+        var nextMock = new Mock<RequestDelegate>();
+        var middleware = new SecurityHeadersMiddleware(nextMock.Object);
+        
+        var contextMock = new Mock<HttpContext>();
+        var responseMock = new Mock<HttpResponse>();
+        var headers = new HeaderDictionary();
+        var features = new FeatureCollection();
+        // Add YARP feature
+        features.Set<Yarp.ReverseProxy.Model.IReverseProxyFeature>(new Mock<Yarp.ReverseProxy.Model.IReverseProxyFeature>().Object);
+        
+        contextMock.Setup(c => c.Response).Returns(responseMock.Object);
+        contextMock.Setup(c => c.Features).Returns(features);
+        responseMock.Setup(r => r.Headers).Returns(headers);
+        
+        Func<Task> onStartingCallback = null;
+        responseMock.Setup(r => r.OnStarting(It.IsAny<Func<Task>>()))
+                    .Callback<Func<Task>>(callback => onStartingCallback = callback);
+
+        // Act
+        await middleware.InvokeAsync(contextMock.Object);
+        
+        // Assert
+        Assert.NotNull(onStartingCallback);
+        await onStartingCallback();
+        
+        Assert.Equal("nosniff", headers["X-Content-Type-Options"]);
+        Assert.False(headers.ContainsKey("Content-Security-Policy"));
+    }
+
+
 }

@@ -7,6 +7,12 @@ using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Web Host Configuration ───────────────────────────────────────────────────
+builder.WebHost.ConfigureKestrel(options => 
+{
+    options.AddServerHeader = false;
+});
+
 // ── Configuration ────────────────────────────────────────────────────────────
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<InternalSignatureOptions>(builder.Configuration.GetSection("InternalSignature"));

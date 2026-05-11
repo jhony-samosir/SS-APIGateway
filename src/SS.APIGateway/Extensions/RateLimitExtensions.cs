@@ -60,16 +60,6 @@ public static class RateLimitExtensions
         return services;
     }
 
-    private static string GetClientIp(HttpContext ctx)
-    {
-        // Check X-Forwarded-For first (from Cloudflare/AWS/K8s Ingress)
-        var forwardedFor = ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(forwardedFor))
-        {
-            // Take the first IP if multiple are present
-            return forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries).First().Trim();
-        }
+    private static string GetClientIp(HttpContext ctx) => ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-        return ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
 }

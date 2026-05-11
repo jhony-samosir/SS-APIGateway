@@ -43,7 +43,8 @@ public sealed class InternalOriginSignatureTransform : ITransformProvider
         {
             var req = transformCtx.ProxyRequest;
             var method = req.Method.Method;
-            var path = req.RequestUri?.PathAndQuery ?? "/";
+            var path = transformCtx.HttpContext.Request.Path + transformCtx.HttpContext.Request.QueryString;
+
             var ts = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
             var payload = $"{method}:{path}:{ts}";
@@ -58,8 +59,15 @@ public sealed class InternalOriginSignatureTransform : ITransformProvider
 
     private string ComputeHmac(string payload)
     {
-        var data = Encoding.UTF8.GetBytes(payload);
-        var hash = HMACSHA256.HashData(_keyBytes, data);
+        // Use stackalloc for small payloads to avoid heap allocation
+        int byteCount = Encoding.UTF8.GetByteCount(payload);
+        Span<byte> payloadBytes = byteCount <= 1024 ? stackalloc byte[byteCount] : new byte[byteCount];
+        Encoding.UTF8.GetBytes(payload, payloadBytes);
+
+        Span<byte> hash = stackalloc byte[32]; // SHA256 hash size is 32 bytes
+        HMACSHA256.HashData(_keyBytes, payloadBytes, hash);
+
         return Convert.ToBase64String(hash);
     }
+
 }

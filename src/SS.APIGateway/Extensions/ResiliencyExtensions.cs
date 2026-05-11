@@ -19,12 +19,8 @@ public static class ResiliencyExtensions
     public static IReverseProxyBuilder AddResiliencyPolicies(
         this IReverseProxyBuilder proxyBuilder, IConfiguration config)
     {
-        var timeoutSec = config.GetValue("Resilience:TimeoutSeconds", 30);
-        var retryCount = config.GetValue("Resilience:RetryCount", 3);
-        var cbRatio = config.GetValue("Resilience:CircuitBreakerFailureRatio", 0.5);
-        var cbSampling = config.GetValue("Resilience:CircuitBreakerSamplingDuration", TimeSpan.FromSeconds(30));
-
         // 1. Register a ResiliencePipelineRegistry that we can dynamically populate per cluster
+
         proxyBuilder.Services.AddSingleton<ResiliencePipelineRegistry<string>>(sp => 
         {
             var registry = new ResiliencePipelineRegistry<string>();

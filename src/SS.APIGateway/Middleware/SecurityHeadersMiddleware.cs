@@ -1,3 +1,5 @@
+using Microsoft.Net.Http.Headers;
+
 namespace SS.APIGateway.Middleware;
 
 /// <summary>
@@ -12,21 +14,35 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         {
             var headers = ctx.Response.Headers;
 
-            headers["X-Content-Type-Options"] = "nosniff";
-            headers["X-Frame-Options"] = "DENY";
-            headers["X-XSS-Protection"] = "1; mode=block";
+            headers[HeaderNames.XContentTypeOptions] = "nosniff";
+            headers[HeaderNames.XFrameOptions] = "DENY";
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-            headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()";
-            headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload";
-            headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'";
 
-            // Never expose server info
-            headers.Remove("Server");
+            headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()";
+            headers[HeaderNames.StrictTransportSecurity] = "max-age=31536000; includeSubDomains; preload";
+
+            // Only add CSP for non-proxied responses (e.g., health, local errors, 404s)
+            // Proxied responses should have their own CSP or none if they are pure APIs
+            if (!headers.ContainsKey(HeaderNames.ContentSecurityPolicy) && !IsProxiedRequest(ctx))
+            {
+                headers[HeaderNames.ContentSecurityPolicy] = "default-src 'none'; frame-ancestors 'none'";
+            }
+
+            // Information masking - redundant headers handled by host/Kestrel configuration
             headers.Remove("X-Powered-By");
+            headers.Remove("X-AspNet-Version");
 
             return Task.CompletedTask;
         });
 
         await next(ctx);
     }
+
+
+    private static bool IsProxiedRequest(HttpContext ctx)
+    {
+        // YARP sets IReverseProxyFeature for proxied requests
+        return ctx.Features.Get<Yarp.ReverseProxy.Model.IReverseProxyFeature>() != null;
+    }
+
 }
