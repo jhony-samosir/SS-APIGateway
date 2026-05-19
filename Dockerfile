@@ -1,7 +1,7 @@
 # Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-
+ 
 # Copy project files first to leverage Docker cache for restore
 COPY ["src/SS.APIGateway/SS.APIGateway.csproj", "src/SS.APIGateway/"]
 RUN dotnet restore "src/SS.APIGateway/SS.APIGateway.csproj"
