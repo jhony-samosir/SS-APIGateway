@@ -1,3 +1,5 @@
+using Serilog.Context;
+
 namespace SS.APIGateway.Middleware;
 
 /// <summary>
@@ -21,22 +23,20 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next, ILogger<Correl
         ctx.Response.Headers[CorrelationHeader] = correlationId;
 
         // Make correlation ID available in logging scope
-        using var scope = logger.BeginScope(new Dictionary<string, object>
+        using (LogContext.PushProperty("CorrelationId", correlationId))
         {
-            ["CorrelationId"] = correlationId
-        });
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            await next(ctx);
+            sw.Stop();
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        await next(ctx);
-        sw.Stop();
-
-        // Structured log — NO PII, NO tokens
-        logger.LogInformation(
-            "Gateway request completed: {Method} {Path} → {StatusCode} in {DurationMs}ms [cid={CorrelationId}]",
-            ctx.Request.Method,
-            ctx.Request.Path,
-            ctx.Response.StatusCode,
-            sw.ElapsedMilliseconds,
-            correlationId);
+            // Structured log — NO PII, NO tokens
+            logger.LogInformation(
+                "Gateway request completed: {Method} {Path} → {StatusCode} in {DurationMs}ms [cid={CorrelationId}]",
+                ctx.Request.Method,
+                ctx.Request.Path,
+                ctx.Response.StatusCode,
+                sw.ElapsedMilliseconds,
+                correlationId);
+        }
     }
 }

@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using Serilog;
+using Serilog.Formatting.Compact;
 using SS.APIGateway.Configuration;
 using SS.APIGateway.Extensions;
 using SS.APIGateway.Middleware;
@@ -6,6 +8,12 @@ using SS.APIGateway.Transforms;
 using Yarp.ReverseProxy.Transforms;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+builder.Host.UseSerilog((context, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(new CompactJsonFormatter()));
 
 // ── Web Host Configuration ───────────────────────────────────────────────────
 builder.WebHost.ConfigureKestrel(options => 
@@ -42,6 +50,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseSerilogRequestLogging();
 
 app.UseCors("GatewayPolicy");
 app.UseRateLimiter();
